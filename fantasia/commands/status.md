@@ -20,15 +20,24 @@ echo "FANTASIA_DIR=$FANTASIA_DIR"
 
 ## Gather Information
 
-1. Read state file: `cat $FANTASIA_DIR/fantasia-state.md 2>/dev/null`
-2. Check maps: `ls $FANTASIA_DIR/codebase/ 2>/dev/null`
-3. Check plans: `ls -la $FANTASIA_DIR/plans/ 2>/dev/null`
+1. Check org context: `cat $HOME/.claude/fantasia/org-context.md 2>/dev/null`
+2. Read state file: `cat $FANTASIA_DIR/fantasia-state.md 2>/dev/null`
+3. Check maps: `ls $FANTASIA_DIR/codebase/ 2>/dev/null`
+4. Check plans: `ls -la $FANTASIA_DIR/plans/ 2>/dev/null`
+5. Check project config: `cat $FANTASIA_DIR/fantasia-config.md 2>/dev/null`
 
 ## Present Status Report
 
 ```
 🎬 Fantasia Status
 ==================
+
+## Organization Context: <Configured | Not configured>
+<If configured, show: organization name, # of repo patterns, matched pattern for this repo>
+<If not configured, show: "Run /fantasia:setup to configure">
+
+## Project Config: <Configured | Not configured>
+<If configured, show: matched pattern, model overrides if any>
 
 ## Codebase Maps: <Mapped | Not mapped>
 <List map files if they exist>
@@ -42,9 +51,12 @@ echo "FANTASIA_DIR=$FANTASIA_DIR"
 
 ### Position Logic
 
-| Maps | Plan | Review | Position | Next |
-|------|------|--------|----------|------|
-| No | - | - | Start | `/fantasia:map` |
-| Yes | No | - | Mapped | `/fantasia:plan <task>` |
-| Yes | Yes | No | Planned | `/fantasia:build` |
-| Yes | Yes | Yes | Reviewed | Commit or fix issues |
+| Org Context | Maps | Plan | Review | Position | Next |
+|-------------|------|------|--------|----------|------|
+| No | - | - | - | Unconfigured | `/fantasia:setup` |
+| Yes | No | - | - | Start | `/fantasia:map` |
+| Yes | Yes | No | - | Mapped | `/fantasia:plan <task>` |
+| Yes | Yes | Yes | No | Planned | `/fantasia:build` |
+| Yes | Yes | Yes | Yes | Reviewed | Commit or fix issues |
+
+**Note**: Org context is optional but recommended. You can still use Fantasia without it.

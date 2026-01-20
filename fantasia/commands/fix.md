@@ -33,6 +33,37 @@ IS_SENTRY = issue contains "sentry.io" OR "--sentry" in flags OR issue matches S
 YOLO_MODE = "--yolo" in flags
 ```
 
+## Load Organization Context
+
+Check for organization-wide context:
+
+```bash
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
+fi
+```
+
+If org context exists:
+1. Read and parse the YAML frontmatter
+2. Match repository patterns against current repo
+3. Extract:
+   - `commands` (test/lint/typecheck) for verification after fix
+   - `precommit` configuration
+   - `coding_standards` for fix quality
+   - `integrations.sentry` for Sentry org context
+
+Build an `ORG_CONTEXT_BLOCK` to inject into investigation agent prompts:
+```
+ORGANIZATION CONTEXT:
+- Repo type: <matched pattern name>
+- Test command: <commands.test>
+- Lint command: <commands.lint>
+- Coding standards: <list>
+
+Use this context to understand repo patterns when investigating.
+```
+
 ## Phase 1: Issue Gathering
 
 ### If Sentry Issue

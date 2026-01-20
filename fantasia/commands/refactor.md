@@ -45,6 +45,35 @@ YOLO_MODE = "--yolo" in flags
    - `CONVENTIONS.md` - Know the patterns to follow
    - `CONCERNS.md` - Identify existing tech debt context
 
+## Load Organization Context
+
+Check for organization-wide context:
+
+```bash
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
+fi
+```
+
+If org context exists:
+1. Read and parse the YAML frontmatter
+2. Match repository patterns against current repo
+3. Extract:
+   - `commands` (test/lint/typecheck/format) for verification after each refactor step
+   - `precommit` configuration
+   - `coding_standards` for refactoring decisions
+
+Build an `ORG_CONTEXT_BLOCK` to inject into analysis agent prompts:
+```
+ORGANIZATION CONTEXT:
+- Repo type: <matched pattern name>
+- Required checks: test, lint, typecheck, format
+- Coding standards: <list>
+
+Refactoring must preserve behavior AND pass all required checks.
+```
+
 ## Phase 1: Analysis
 
 ### Identify Refactoring Scope
