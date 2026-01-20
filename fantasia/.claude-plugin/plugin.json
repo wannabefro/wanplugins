@@ -1,0 +1,9 @@
+{
+  "name": "fantasia",
+  "version": "0.1.0",
+  "description": "Codebase-aware development accelerator. Map patterns, plan with understanding, build with parallel agents, review thoroughly.",
+  "author": {
+    "name": "Sam McTaggart"
+  },
+  "keywords": ["codebase", "patterns", "parallel", "agents", "development", "review"]
+}

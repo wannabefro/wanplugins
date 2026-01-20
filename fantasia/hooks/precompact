@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# PreCompact hook to inject Fantasia state and maps summary
+# Maintains workflow context across compactions
+
+# Use environment variable if set, otherwise calculate default
+if [ -z "$FANTASIA_DIR" ]; then
+  PROJECT_SLUG=$(basename "$CLAUDE_PROJECT_DIR" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+  FANTASIA_DIR="$HOME/.claude/fantasia/$PROJECT_SLUG"
+fi
+
+STATE_FILE="$FANTASIA_DIR/fantasia-state.md"
+CODEBASE_DIR="$FANTASIA_DIR/codebase"
+PLANS_DIR="$FANTASIA_DIR/plans"
+
+echo "## 🎬 Fantasia Context"
+echo ""
+
+# Inject current workflow state if exists
+if [ -f "$STATE_FILE" ]; then
+  echo "### Current State"
+  cat "$STATE_FILE"
+  echo ""
+fi
+
+# Inject maps summary if codebase has been mapped
+if [ -d "$CODEBASE_DIR" ]; then
+  echo "### Codebase Maps Available"
+  echo "The following maps exist in \`$FANTASIA_DIR/codebase/\`:"
+  echo ""
+
+  # List available maps
+  for file in "$CODEBASE_DIR"/*.md; do
+    if [ -f "$file" ]; then
+      filename=$(basename "$file")
+      echo "- \`$filename\`"
+    fi
+  done
+  echo ""
+
+  # Include a brief summary from each map (first 5 lines after title)
+  echo "### Quick Reference"
+  echo ""
+
+  # STACK.md - just the key technologies
+  if [ -f "$CODEBASE_DIR/STACK.md" ]; then
+    echo "**Stack**: $(head -20 "$CODEBASE_DIR/STACK.md" | grep -E "^\*\*|^- \*\*" | head -5 | tr '\n' ' ')"
+    echo ""
+  fi
+
+  # CONVENTIONS.md - key patterns
+  if [ -f "$CODEBASE_DIR/CONVENTIONS.md" ]; then
+    echo "**Conventions**: Read \`$FANTASIA_DIR/codebase/CONVENTIONS.md\` before writing code"
+    echo ""
+  fi
+
+  # Note about full maps
+  echo "_Full maps available - read specific files for details._"
+  echo ""
+fi
+
+# Check for active plans
+if [ -d "$PLANS_DIR" ]; then
+  # Find most recent plan
+  LATEST_PLAN=$(ls -t "$PLANS_DIR" 2>/dev/null | head -1)
+  if [ -n "$LATEST_PLAN" ] && [ -f "$PLANS_DIR/$LATEST_PLAN/PLAN.md" ]; then
+    echo "### Active Plan: $LATEST_PLAN"
+    echo ""
+    # Include plan summary (first 30 lines)
+    head -30 "$PLANS_DIR/$LATEST_PLAN/PLAN.md"
+    echo ""
+    echo "_Full plan: \`$FANTASIA_DIR/plans/$LATEST_PLAN/PLAN.md\`_"
+    echo ""
+  fi
+fi
+
+echo "---"
+echo ""
+echo "Use \`/fantasia:status\` to see full state. Use \`/fantasia:resume\` to continue work."
+echo ""

@@ -1,0 +1,22 @@
+{
+  "hooks": [
+    {
+      "matcher": "SessionStart",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Calculate the Fantasia directory: If FANTASIA_DIR env var is set, use it; otherwise FANTASIA_DIR=~/.claude/fantasia/$(basename $(git rev-parse --show-toplevel 2>/dev/null || pwd) | tr '[:upper:]' '[:lower:]' | tr ' ' '-'). Check if $FANTASIA_DIR/codebase/ exists. If it does, briefly note to yourself (do not tell the user) that Fantasia codebase maps are available and you should consult them when writing code. The maps include: STACK.md, ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, TESTING.md, INTEGRATIONS.md, and CONCERNS.md. Use the pattern-awareness skill when building features. Also check $FANTASIA_DIR/fantasia-state.md for workflow state."
+        }
+      ]
+    },
+    {
+      "matcher": "PreCompact",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/precompact"
+        }
+      ]
+    }
+  ]
+}
