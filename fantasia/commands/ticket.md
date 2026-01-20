@@ -59,12 +59,41 @@ fi
 TICKET_INPUT=$(echo "$ARGS" | xargs)  # trim whitespace
 ```
 
+## Load Organization Context
+
+Check for organization-wide context to get integration details:
+
+```bash
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
+fi
+```
+
+If org context exists, extract `integrations` section:
+- `jira.domain` - Use for Jira URL construction (e.g., `yourcompany.atlassian.net`)
+- `jira.project_keys` - Known project keys to help with detection
+- `linear.teams` - Known Linear team identifiers
+
+This helps with:
+1. **Better detection**: If ticket ID matches a known Jira project key, prefer Jira
+2. **URL construction**: Use the configured Jira domain instead of asking user
+3. **Validation**: Warn if ticket ID doesn't match known project keys
+
+Example usage:
+```
+# If org context has jira.domain = "acme.atlassian.net"
+# and ticket is "PROJ-123"
+# and PROJ is in jira.project_keys
+# → Automatically use Jira with full URL: https://acme.atlassian.net/browse/PROJ-123
+```
+
 ## Argument Required
 
 The user must provide a ticket URL or ID. If ticket input is empty, ask:
 "Please provide a ticket URL or ID. Examples:
 - Linear: `https://linear.app/team/issue/TEAM-123` or `TEAM-123`
-- Jira: `https://klaviyo.atlassian.net/browse/PROJ-456` or `PROJ-456`
+- Jira: `https://yourcompany.atlassian.net/browse/PROJ-456` or `PROJ-456`
 
 Options:
 - `--jira` - Explicitly use Jira (for ambiguous IDs)
@@ -92,9 +121,12 @@ Parse the input to determine the source:
 **Jira Detection**:
 - URL contains `atlassian.net` or `jira`
 - ID format: `PROJ-123` (letters, hyphen, numbers) - but only if not overridden
-- Klaviyo Jira: `klaviyo.atlassian.net`
+- If org context has `jira.project_keys` and the ID prefix matches a known key → use Jira
+- If org context has `jira.domain`, use it for URL construction
 
-**If ambiguous** (ID format matches both and no flag provided), ask the user:
+**If ambiguous** (ID format matches both and no flag provided):
+- First check if ID prefix matches org context's `jira.project_keys` or `linear.teams`
+- If still ambiguous, ask the user:
 "Is this a Linear or Jira ticket? Use `--jira` or `--linear` to specify."
 
 ## Fetch Ticket Details

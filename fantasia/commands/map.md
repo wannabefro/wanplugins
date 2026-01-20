@@ -62,63 +62,68 @@ If config exists, read it and extract model overrides from YAML frontmatter:
 2. Config `default-model` (if set)
 3. Agent's built-in default (from agent file)
 
-## Klaviyo Repository Detection
+## Load Organization Context
 
-Before spawning agents, detect if this is a Klaviyo repository:
+Check for organization-wide context:
 
 ```bash
-# Check for k-repo markers
-if [ -f "pants.toml" ] || [ -d "python/klaviyo" ]; then
-  echo "KLAVIYO_REPO=k-repo"
-fi
-
-# Check for fender markers
-if [ -f "turbo.json" ] && [ -d "client" ]; then
-  echo "KLAVIYO_REPO=fender"
-fi
-
-# Check for app markers
-if [ -d ".venv" ] && [ -f "manage.py" ]; then
-  echo "KLAVIYO_REPO=app"
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
 fi
 ```
 
-If a Klaviyo repo is detected, add these special instructions to EACH agent prompt:
+If org context exists:
+1. Read and parse the YAML frontmatter
+2. Extract `repository_patterns` array
+3. For each pattern, check if its `detection` markers exist in the current repo
+4. If a pattern matches, extract its context for injection into agent prompts
 
-### For k-repo:
-```
-KLAVIYO CONTEXT: This is Klaviyo's k-repo (Pants monorepo).
-- Build system: Pants
-- Languages: Python, Go
-- Required commands: pants test/lint/check/fmt
-- Document Pants target syntax in CONVENTIONS.md
-- Note BUILD file patterns in STRUCTURE.md
-- Include required checks before push in TESTING.md
-```
+### Pattern Matching Logic
 
-### For fender:
-```
-KLAVIYO CONTEXT: This is Klaviyo's fender (frontend monorepo).
-- Build system: Turbo + Yarn workspaces
-- Languages: TypeScript, React
-- Required commands: turbo test, yarn lint/tsc:b/format
-- Document @klaviyo/* package patterns in ARCHITECTURE.md
-- Note CSS Modules usage (NOT styled-components) in CONVENTIONS.md
-- Include testing philosophy (observable behavior) in TESTING.md
-- Document client/shared/universal structure in STRUCTURE.md
+```bash
+# For each pattern in org-context.md repository_patterns:
+# Check if ALL detection markers exist
+# e.g., if detection: [turbo.json, client/]
+# then check: [ -f "turbo.json" ] && [ -d "client" ]
 ```
 
-### For app:
+### Build Organization Context Block
+
+If a pattern matches, construct an `ORG_CONTEXT_BLOCK` to inject into each agent prompt:
+
 ```
-KLAVIYO CONTEXT: This is Klaviyo's app (Django backend).
-- Framework: Django
-- Language: Python
-- CRITICAL: .venv must be activated for mypy
-- Required commands: pre-commit, mypy (with venv)
-- Document Django patterns in ARCHITECTURE.md
-- Note venv requirement prominently in CONVENTIONS.md
-- Include pre-commit hooks in TESTING.md
+ORGANIZATION CONTEXT:
+Matched pattern: "<pattern-name>"
+Build system: <build_system>
+Languages: <languages>
+
+Required commands:
+- Test: <commands.test>
+- Lint: <commands.lint>
+- Typecheck: <commands.typecheck>
+- Format: <commands.format>
+
+Pre-commit:
+- Enabled: <precommit.enabled>
+- Setup: <precommit.setup>
+- Run: <precommit.run>
+- Notes: <precommit.notes>
+
+Environment:
+- Activation: <environment.activation>
+- Notes: <environment.notes>
+
+Pattern notes:
+<notes>
+
+Coding standards:
+<coding_standards list>
+
+IMPORTANT: Document these commands and patterns in CONVENTIONS.md and TESTING.md.
 ```
+
+If no org context exists or no pattern matches, `ORG_CONTEXT_BLOCK` is empty.
 
 ## Optional Focus Area
 
@@ -156,6 +161,8 @@ Analyze this codebase's technology stack and integrations.
 
 Focus area (if any): $ARGUMENTS
 
+$ORG_CONTEXT_BLOCK
+
 Write these files directly:
 
 1. `$FANTASIA_DIR/codebase/STACK.md` - Technologies used:
@@ -184,6 +191,8 @@ Analyze this codebase's architecture and structure.
 
 Focus area (if any): $ARGUMENTS
 
+$ORG_CONTEXT_BLOCK
+
 Write these files directly:
 
 1. `$FANTASIA_DIR/codebase/ARCHITECTURE.md` - System design:
@@ -211,6 +220,8 @@ When done, respond with ONLY: "✓ ARCHITECTURE.md and STRUCTURE.md written"
 Analyze this codebase's conventions and testing approaches.
 
 Focus area (if any): $ARGUMENTS
+
+$ORG_CONTEXT_BLOCK
 
 Write these files directly:
 
@@ -241,6 +252,8 @@ When done, respond with ONLY: "✓ CONVENTIONS.md and TESTING.md written"
 Analyze this codebase for technical concerns and risks.
 
 Focus area (if any): $ARGUMENTS
+
+$ORG_CONTEXT_BLOCK
 
 Write this file directly:
 
@@ -279,31 +292,6 @@ Created in $FANTASIA_DIR/codebase/:
 - CONCERNS.md - Technical debt and risks
 
 Next step: Run /fantasia:plan <task> to plan a feature
-```
-
-### Klaviyo-Specific Completion
-
-If a Klaviyo repo was detected, add to the summary:
-
-**For k-repo:**
-```
-📦 Detected: Klaviyo k-repo (Pants monorepo)
-Tip: Use /k-repo skill for command reference, Fantasia maps for patterns.
-Required before push: pants test, lint, check, fmt
-```
-
-**For fender:**
-```
-📦 Detected: Klaviyo fender (frontend monorepo)
-Tip: Use /fender skill for commands, Fantasia maps for architecture.
-Required before push: turbo test, yarn lint, tsc:b, format
-```
-
-**For app:**
-```
-📦 Detected: Klaviyo app (Django backend)
-Tip: Use /app skill for commands, Fantasia maps for Django patterns.
-Required before push: pre-commit, mypy (remember to activate .venv!)
 ```
 
 ## Save Checkpoint

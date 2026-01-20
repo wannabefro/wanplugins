@@ -42,6 +42,28 @@ TASK_SLUG=$(echo "$ARGUMENTS" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/
 mkdir -p "$FANTASIA_DIR/plans/$TASK_SLUG"
 ```
 
+## Load Organization Context
+
+Check for organization-wide context:
+
+```bash
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
+fi
+```
+
+If org context exists:
+1. Read and parse the YAML frontmatter
+2. Match repository patterns against current repo (using `detection` markers)
+3. Extract `coding_standards` for use in planning
+4. Note any relevant `integrations` for the task
+
+Store matched pattern info as `ORG_CONTEXT` for use in later phases:
+- Build system and commands (for understanding what validation looks like)
+- Coding standards (for design decisions)
+- Pre-commit configuration (for understanding CI expectations)
+
 ---
 
 ## Phase 1: Discovery

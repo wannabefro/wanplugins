@@ -28,6 +28,8 @@ Alternative workflows:
 /fantasia:fix <issue> [--sentry]         → Bug investigation and fixing (Sentry integration)
 ```
 
+**First time?**: `/fantasia:setup` to configure org patterns and project settings
+
 **Quick start**: `/fantasia:ticket PROJ-123` or `/fantasia:map` then `/fantasia:plan <task>`
 
 **Bug fixing**: `/fantasia:fix SENTRY-123` or `/fantasia:fix "users can't login" --sentry`
@@ -39,6 +41,41 @@ Alternative workflows:
 **YOLO mode**: `/fantasia:yolo PROJ-123 --worktree` — full automated workflow in isolated worktree
 
 ## Commands
+
+### `/fantasia:setup [--org]`
+Configures Fantasia for your organization and project. Uses a hybrid approach: auto-detects repository patterns, then asks targeted questions for anything it couldn't detect.
+
+**Two-tier configuration:**
+- **Organization context** (`~/.claude/fantasia/org-context.md`): Shared patterns, integrations, and coding standards that apply across all your projects
+- **Project config** (`~/.claude/fantasia/<project>/fantasia-config.md`): Project-specific settings and overrides
+
+**What it captures:**
+
+| Category | Examples |
+|----------|----------|
+| **Repository patterns** | Build systems, required commands (test/lint/typecheck/format), pre-commit hooks, environment setup |
+| **Integrations** | Jira domain & project keys, Linear teams, Sentry org, GitHub org |
+| **Coding standards** | Style preferences, architectural patterns, things to avoid |
+
+**Flow:**
+1. Checks if org context exists → if not, offers to create it
+2. Auto-detects repo markers (pants.toml, turbo.json, package.json, etc.)
+3. Matches against org patterns or guides you through setup
+4. Writes configuration files
+
+**Flags:**
+| Flag | Description |
+|------|-------------|
+| `--org` | Edit organization context only (skip project setup) |
+
+**Examples:**
+```bash
+/fantasia:setup                # Full setup (org if needed + project)
+/fantasia:setup --org          # Edit organization context only
+```
+
+**First-time setup** creates both org context and project config.
+**Returning users** skip straight to project setup (org context already exists).
 
 ### `/fantasia:ticket <url-or-id> [flags]`
 Starts a workflow from a Linear or Jira ticket:
@@ -64,7 +101,7 @@ Starts a workflow from a Linear or Jira ticket:
 
 **Supported sources**:
 - Linear: `https://linear.app/team/issue/TEAM-123` or `TEAM-123`
-- Jira: `https://klaviyo.atlassian.net/browse/PROJ-456` or `PROJ-456`
+- Jira: `https://yourcompany.atlassian.net/browse/PROJ-456` or `PROJ-456`
 
 Outputs to `~/.claude/fantasia/<project>/plans/<ticket-id>/`:
 - `TICKET.md` - Original ticket content and requirements
@@ -508,31 +545,3 @@ Use cases:
 - **Repo-local storage**: Set `FANTASIA_DIR=.fantasia` to store in the repo
 - **Multiple projects**: Organize outputs differently than the default
 
-## Klaviyo Repository Support
-
-Fantasia automatically detects Klaviyo repositories and adapts its analysis:
-
-| Repository | Detection | Special Handling |
-|------------|-----------|------------------|
-| **k-repo** | `pants.toml`, `python/klaviyo/` | Pants build system, Python/Go patterns |
-| **fender** | `turbo.json`, `client/` | Turbo/Yarn, React/TypeScript, CSS Modules |
-| **app** | `.venv/`, `manage.py` | Django patterns, venv requirements |
-
-### What Fantasia adds for Klaviyo repos:
-
-- **CONVENTIONS.md** includes required commands before push
-- **TESTING.md** documents repo-specific test commands
-- **ARCHITECTURE.md** captures Klaviyo-specific patterns (Pants targets, @klaviyo/* packages, Django apps)
-- **CONCERNS.md** flags Klaviyo-specific issues
-
-### Integration with Other Klaviyo Plugins
-
-Fantasia complements the `klaviyo-repos-plugin` and `fender` plugin:
-
-| Plugin | Provides | Use For |
-|--------|----------|---------|
-| `klaviyo-repos-plugin` | Command reference (`/k-repo`, `/app`) | Running commands |
-| `fender` | Testing rules, commands | Fender-specific workflows |
-| **Fantasia** | Deep architecture analysis | Understanding patterns, planning features |
-
-**Tip**: Use Fantasia to map the codebase once, then use the other plugins for day-to-day commands.

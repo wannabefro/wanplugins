@@ -131,6 +131,38 @@ If config exists, extract model overrides for builder agents:
 
 Also check for `default-model` and any project notes to include as context.
 
+## Load Organization Context
+
+Check for organization-wide context:
+
+```bash
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
+fi
+```
+
+If org context exists:
+1. Read and parse the YAML frontmatter
+2. Match repository patterns against current repo (using `detection` markers)
+3. Extract matched pattern's:
+   - `commands` (test/lint/typecheck/format) for verification
+   - `precommit` configuration
+   - `environment` requirements
+   - `coding_standards` for code quality
+
+Build an `ORG_CONTEXT_BLOCK` to inject into agent prompts:
+```
+ORGANIZATION CONTEXT:
+- Build system: <build_system>
+- Required commands: test, lint, typecheck, format
+- Pre-commit: <enabled/disabled>
+- Environment: <activation command if any>
+- Coding standards: <list>
+
+Ensure code follows these standards and will pass required checks.
+```
+
 ## Read Context
 
 Read these files to provide context to agents:

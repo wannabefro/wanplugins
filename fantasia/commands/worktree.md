@@ -85,7 +85,7 @@ After switching, ensure the environment is set up:
 ```bash
 cd "$WORKTREE_PATH"
 
-# Enable direnv if .envrc exists (critical for Klaviyo repos)
+# Enable direnv if .envrc exists
 if [ -f .envrc ]; then
   echo "Enabling direnv for worktree..."
   direnv allow

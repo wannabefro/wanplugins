@@ -1,6 +1,104 @@
 # Fantasia Configuration
 
-Fantasia stores all outputs in `~/.claude/fantasia/<project>/` by default to keep your repos clean. This includes configuration.
+Fantasia uses a two-tier configuration system:
+- **Organization context** (`~/.claude/fantasia/org-context.md`): Shared across all projects
+- **Project config** (`~/.claude/fantasia/<project>/fantasia-config.md`): Project-specific settings
+
+Run `/fantasia:setup` to configure both interactively.
+
+## Organization Context
+
+The organization context file stores patterns, integrations, and standards shared across all your projects.
+
+**Location**: `~/.claude/fantasia/org-context.md`
+
+```yaml
+---
+organization: Acme Corp
+created: 2026-01-20
+
+repository_patterns:
+  - name: Frontend Monorepo
+    detection:
+      - turbo.json
+      - client/
+    build_system: Turbo + Yarn
+    languages: [TypeScript, React]
+    commands:
+      test: turbo test --filter=<package>
+      lint: yarn lint <file>
+      typecheck: yarn tsc:b <project>
+      format: yarn format <file>
+    precommit:
+      enabled: true
+      setup: pre-commit install
+      run: pre-commit run --files <files>
+      notes: Runs automatically on commit
+    environment:
+      activation: null
+      notes: null
+    notes: |
+      Use CSS Modules, not styled-components
+      Test observable behavior
+
+  - name: Python Backend
+    detection:
+      - manage.py
+      - .venv/
+    build_system: Django
+    languages: [Python]
+    commands:
+      test: bin/pytest <filepath>
+      lint: pre-commit run --files <filepath>
+      typecheck: source .venv/bin/activate && mypy <filepath>
+      format: pre-commit run --files <filepath>
+    precommit:
+      enabled: true
+      setup: pre-commit install
+      run: pre-commit run --files <filepath>
+    environment:
+      activation: source .venv/bin/activate
+      notes: CRITICAL - activate venv before mypy
+
+integrations:
+  jira:
+    domain: yourcompany.atlassian.net
+    project_keys: [PROJ, TEAM, INFRA]
+  linear:
+    teams: [engineering, platform]
+  sentry:
+    org: acme-corp
+  github:
+    org: acme-corp
+
+coding_standards:
+  - Use TypeScript strict mode
+  - Prefer CSS Modules over styled-components
+  - Test observable behavior, not implementation
+  - Always handle errors explicitly
+---
+
+# Additional Notes
+
+Any freeform notes that don't fit the YAML structure.
+```
+
+### How It's Used
+
+When Fantasia commands run, they:
+1. Load `org-context.md` if it exists
+2. Match the current repo against `repository_patterns` using detection markers
+3. Inject matched pattern context into agent prompts
+4. Use `integrations` for ticket/Jira/Sentry commands
+5. Include `coding_standards` in planning and review
+
+### Editing Organization Context
+
+```bash
+/fantasia:setup --org    # Re-run org setup interactively
+```
+
+Or edit `~/.claude/fantasia/org-context.md` directly.
 
 ## Custom Output Location
 

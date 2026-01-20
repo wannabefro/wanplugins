@@ -60,6 +60,33 @@ If config exists, extract model overrides for reviewer agents:
 
 Also check for `default-model` setting.
 
+## Load Organization Context
+
+Check for organization-wide context:
+
+```bash
+ORG_CONTEXT_FILE="$HOME/.claude/fantasia/org-context.md"
+if [ -f "$ORG_CONTEXT_FILE" ]; then
+  echo "ORG_CONTEXT_EXISTS=true"
+fi
+```
+
+If org context exists:
+1. Read and parse the YAML frontmatter
+2. Match repository patterns against current repo
+3. Extract `coding_standards` for review criteria
+4. Extract `commands` to verify code will pass required checks
+
+Build an `ORG_CONTEXT_BLOCK` to inject into reviewer prompts:
+```
+ORGANIZATION STANDARDS:
+- Coding standards: <list from org context>
+- Required checks: test, lint, typecheck, format
+- Pre-commit: <enabled/disabled>
+
+Review code against these standards. Flag violations.
+```
+
 ## Read Context
 
 Read relevant codebase maps to inform the review:
