@@ -19,6 +19,18 @@
       "license": "MIT",
       "keywords": ["codebase", "patterns", "parallel", "agents", "development", "review"],
       "category": "development"
+    },
+    {
+      "name": "genie",
+      "source": "./genie",
+      "description": "Intelligent model router. Analyzes prompts and selects the optimal Claude model (haiku/sonnet/opus) for your task.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Sam McTaggart"
+      },
+      "license": "MIT",
+      "keywords": ["model-selection", "routing", "optimization", "haiku", "sonnet", "opus"],
+      "category": "utility"
     }
   ]
 }

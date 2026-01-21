@@ -1,0 +1,9 @@
+{
+  "name": "genie",
+  "version": "0.1.0",
+  "description": "Intelligent model router that analyzes prompts and selects the optimal Claude model (haiku/sonnet/opus) for the task",
+  "author": {
+    "name": "Sam McTaggart"
+  },
+  "keywords": ["model-selection", "routing", "optimization", "disney"]
+}
