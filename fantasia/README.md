@@ -22,6 +22,8 @@ Codebase-aware development accelerator. Like Mickey orchestrating enchanted broo
 /fantasia:verify  → Record manual testing results (optional)
         ↓
 /fantasia:ci      → Check CI status, auto-fix on failure (optional)
+        ↓
+/fantasia:pr      → Address PR feedback (reviews, discussions, CI) (optional)
 
 Alternative workflows:
 /fantasia:refactor <target>              → Safe refactoring with behavior preservation
@@ -327,6 +329,51 @@ Checks CI/CD pipeline status for current branch:
 
 **Requires**: GitHub CLI (`gh`) installed and authenticated
 
+### `/fantasia:pr <github-pr-url>`
+Addresses feedback from a GitHub PR — code review comments, discussions, and CI failures:
+1. **Fetches** all feedback from the PR (review comments, discussions, CI status)
+2. **Triages** with priority levels (HIGH/MEDIUM/LOW) using lightweight haiku agent
+3. **Presents** interactive summary — choose all, high-priority only, specific items, or none
+4. **Addresses** feedback adaptively:
+   - Simple fixes (typos, null checks) → handled directly
+   - Complex issues → escalates to specialists (bug-hunter, code-reviewer, approach-explorer)
+5. **Stages** changes for review — you control the commit
+
+**Examples**:
+```bash
+/fantasia:pr https://github.com/owner/repo/pull/123
+```
+
+**Interactive selection**:
+```
+PR #123: "Add user authentication flow"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ HIGH  [1] @reviewer on auth.ts:45 — "Add null check"
+ HIGH  [2] CI: jest tests failing
+ MED   [3] @reviewer on utils.ts:12 — "Extract helper"
+ LOW   [4] Discussion — "Typo in comment"
+
+Address: [a]ll, [h]igh only, [1,2,3] specific, [n]one?
+```
+
+**Token efficiency**:
+- Haiku for triage, sonnet for changes
+- Batches feedback by file
+- Loads only relevant codebase maps
+- Truncates CI logs to relevant errors
+- Skips resolved/outdated comments
+
+**Conflict resolution**:
+When reviewers disagree, Fantasia picks the approach that aligns with codebase conventions (from CONVENTIONS.md) and documents the reasoning.
+
+**Requires**: GitHub CLI (`gh`) installed and authenticated
+
+Outputs to `~/.claude/fantasia/<project>/pr-feedback/PR-<number>/`:
+- `CONTEXT.md` - PR metadata
+- `TRIAGE.md` - Prioritized feedback list
+- `CHANGES.md` - What was changed and why
+
 ## Context Management
 
 Fantasia automatically preserves context across sessions and compactions:
@@ -456,8 +503,8 @@ Agents use different models based on task complexity:
 
 | Model | Agents | Rationale |
 |-------|--------|-----------|
-| **haiku** | tech-mapper, quality-mapper, test-reviewer, code-smell-detector, dependency-mapper, test-coverage-checker, parallel-verifier | Fast scanning, pattern matching, straightforward analysis |
-| **sonnet** | arch-mapper, concerns-mapper, implementer, integrator, code-reviewer, bug-hunter, approach-explorer, stack-tracer, git-historian, similar-bug-finder, bug-skeptic | Code writing, judgment calls, nuanced reasoning |
+| **haiku** | tech-mapper, quality-mapper, test-reviewer, code-smell-detector, dependency-mapper, test-coverage-checker, parallel-verifier, pr-feedback-triager | Fast scanning, pattern matching, straightforward analysis |
+| **sonnet** | arch-mapper, concerns-mapper, implementer, integrator, code-reviewer, bug-hunter, approach-explorer, stack-tracer, git-historian, similar-bug-finder, bug-skeptic, pr-feedback-handler | Code writing, judgment calls, nuanced reasoning |
 | **opus** | architect | Complex design decisions, interface contracts, architectural choices |
 
 This tiered approach balances cost and quality - using heavyweight models only where reasoning depth matters.
@@ -507,22 +554,27 @@ All outputs go to `~/.claude/fantasia/<project>/` by default to keep your repo c
 │   ├── CONVENTIONS.md
 │   ├── TESTING.md
 │   └── CONCERNS.md
-└── plans/              # From /fantasia:plan, /fantasia:ticket, /fantasia:fix, /fantasia:refactor
-    ├── <task-slug>/
-    │   ├── TICKET.md       # From /fantasia:ticket (original requirements)
-    │   ├── PLAN.md
-    │   ├── EXTERNAL-DEPS.md
-    │   └── REVIEW.md       # From /fantasia:review
-    ├── fix-<slug>/         # From /fantasia:fix
-    │   ├── SENTRY.md       # Sentry issue details (if applicable)
-    │   ├── BUG-REPORT.md   # Manual bug report (if no Sentry)
-    │   ├── INVESTIGATION.md
-    │   ├── PLAN.md
-    │   └── SUMMARY.md
-    └── refactor-<slug>/    # From /fantasia:refactor
-        ├── ANALYSIS.md
-        ├── PLAN.md
-        └── SUMMARY.md
+├── plans/              # From /fantasia:plan, /fantasia:ticket, /fantasia:fix, /fantasia:refactor
+│   ├── <task-slug>/
+│   │   ├── TICKET.md       # From /fantasia:ticket (original requirements)
+│   │   ├── PLAN.md
+│   │   ├── EXTERNAL-DEPS.md
+│   │   └── REVIEW.md       # From /fantasia:review
+│   ├── fix-<slug>/         # From /fantasia:fix
+│   │   ├── SENTRY.md       # Sentry issue details (if applicable)
+│   │   ├── BUG-REPORT.md   # Manual bug report (if no Sentry)
+│   │   ├── INVESTIGATION.md
+│   │   ├── PLAN.md
+│   │   └── SUMMARY.md
+│   └── refactor-<slug>/    # From /fantasia:refactor
+│       ├── ANALYSIS.md
+│       ├── PLAN.md
+│       └── SUMMARY.md
+└── pr-feedback/        # From /fantasia:pr
+    └── PR-<number>/
+        ├── CONTEXT.md      # PR metadata
+        ├── TRIAGE.md       # Prioritized feedback list
+        └── CHANGES.md      # What was changed and why
 ```
 
 The project slug is derived from your repo directory name (lowercase, hyphenated).
