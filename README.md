@@ -7,18 +7,14 @@ A collection of Claude Code plugins.
 | Plugin | Description |
 |--------|-------------|
 | [fantasia](./fantasia) | Codebase-aware development accelerator. Map patterns, plan with understanding, build with parallel agents, review thoroughly. |
+| [genie](./genie) | Intelligent model router for Claude Code. Analyze a prompt and select the best Claude model. |
 
 ## Installation
 
-Install any plugin directly from this repository:
 
 ```bash
-# Install fantasia
-claude plugin add https://github.com/wannabefro/wanplugins/fantasia
-
-# Or clone and install locally
-git clone https://github.com/wannabefro/wanplugins
-claude plugin add ./wanplugins/fantasia
+/plugin marketplace add wannabefro/wanplugins
+# then pick which plugins to use
 ```
 
 ## Plugin Structure
